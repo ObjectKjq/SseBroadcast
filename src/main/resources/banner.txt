@@ -1,0 +1,3 @@
+github地址：https://github.com/ObjectKjq/SseBroadcast
+接口地址：http://localhost:${server.port}/api/doc.html
+

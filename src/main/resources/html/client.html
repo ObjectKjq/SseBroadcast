@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>sse-client</title>
+</head>
+<body>
+<h2>sse-client</h2>
+<script>
+    let sse = new EventSource("http://localhost:8080/api/sse/subscribe");
+    sse.onmessage = function (event) {
+        let data = event.data;
+        console.log(data);
+    };
+</script>
+</body>
+</html>
