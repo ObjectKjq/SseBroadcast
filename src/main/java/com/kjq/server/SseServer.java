@@ -2,12 +2,14 @@ package com.kjq.server;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -38,22 +40,52 @@ public class SseServer {
             emitters.remove(emitter);
             log.info("客户端断开连接，当前连接数：{}", emitters.size());
         });
-        emitter.onTimeout(() -> emitter.complete());
-        emitter.onError(ex -> emitter.completeWithError(ex));
+        emitter.onTimeout(() -> {
+            emitter.complete(); // 关闭
+            log.warn("连接超时关闭");
+        });
+        emitter.onError(ex -> {
+            emitter.completeWithError(ex); // 异常关闭
+            log.error("连接异常关闭: {}", ex.getMessage());
+        });
 
         return emitter;
     }
 
     /**
      * 广播消息
+     *
      * @param message
      */
     public void broadcast(String message) {
-        for (SseEmitter emitter : emitters) {
+        Iterator<SseEmitter> iterator = emitters.iterator();
+        while (iterator.hasNext()) {
+            SseEmitter emitter = iterator.next();
             try {
                 emitter.send(message);
             } catch (IOException e) {
-                e.printStackTrace();
+                iterator.remove(); // 确保失效连接被移除
+            }
+        }
+    }
+
+    /**
+     * 发送心跳检测客户端是否断开连接，30s一次
+     */
+    @Scheduled(fixedDelay = 30_000L)
+    public void sseHeartbeat() {
+        Iterator<SseEmitter> iterator = emitters.iterator();
+        while (iterator.hasNext()) {
+            SseEmitter emitter = iterator.next();
+            // 发送心跳事件
+            try {
+                // 发送心跳事件（空消息，仅作为保活机制）
+                emitter.send(SseEmitter.event()
+                        .name("heartbeat")  // 事件类型设为 "heartbeat"
+                        .data(""));          // 空数据
+            } catch (IOException e) {
+                // 发送失败可能是由于客户端断开连接，移除该 emitter
+                iterator.remove(); // 确保失效连接被移除
             }
         }
     }
