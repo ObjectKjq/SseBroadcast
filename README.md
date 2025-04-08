@@ -18,13 +18,13 @@ SSE 是单向通道，只能服务器向浏览器发送，因为流信息本质�
 1. 引入依赖启动项目。
 2. 使用浏览器打开test.html文件，默认订阅了sse，并等待消息，如下图所示。
 
-![](图片/Snipaste_2025-04-08_22-45-47.png)
+![](doc/Snipaste_2025-04-08_22-45-47.png)
 
 3. 打开接口文档http://localhost:8080/api/doc.html#/default/broadcast-controller/broadcastMessage，发送消息和客户端接收如下图。
 
-![](图片/Snipaste_2025-04-08_22-49-13.png)
+![](doc/Snipaste_2025-04-08_22-49-13.png)
 
-![](图片/Snipaste_2025-04-08_22-49-29.png)
+![](doc/Snipaste_2025-04-08_22-49-29.png)
 
 4. 客户端关闭连接后，后端服务定时30s检测一次，并释放资源。
 
